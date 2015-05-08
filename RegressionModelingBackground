@@ -1,0 +1,63 @@
+Basic Equations for Multiple Linear Regression
+Y = X*Beta + error
+
+Y - response column vector, length 'n' responses
+
+X - design matrix, size 'n x k' responses by variables
+X takes the form [1, x(1,1), x(1,2), ..., x(1,k)
+                  1, x(2,1), x(2,2), ..., x(2,k)
+                  ...                     
+                  1, x(n,1), x(n,2), ..., x(n,k)]
+
+Beta - coefficient column vector, length 'k' variables
+
+error - error column vector, length 'n'
+Multiple regression modelling is the application of the 'least squares' estimator to find the vector Beta that minimizes L = sum((error_i)^2, i=[1:n]) = t(error) %*% error = t(Y - X %*% Beta)%*%(Y - X %*% Beta)
+
+The least squares estimator is also the partial derivative solved for 0, for each coefficient
+d(L)/d(Beta)|b = -2*(t(X) %*% Y) + 2*(t(X) %*% X %*% Beta)
+this equation simplifies to: Beta = solve(t(X) %*% X) %*% t(X) %*% Y
+
+Beta = X'X
+Beta = [                 n,  t(X[,1]) %*% X[,2],  ...,  t(X[,1]) %*% X[,k],
+        t(X[,2]) %*% X[,1],  t(X[,2]) %*% X[,2],  ...,  t(X[,2]) %*% X[,k],
+        ...
+        t(X[,k]) %*% X[,1],  t(X[,k]) %*% X[,1],  ...,  t(X[,k]) %*% X[,k]  ]
+
+Y.hat = X %*% Beta
+
+residual = Y - Y.hat
+
+
+## ANOVA Table Calculations
+Source      SS                      dof         MS
+Regression  Beta'*X'*Y - sum(Y)^2/n k           SSR/dofR
+Error       Y'*Y - Beta'*X'*Y       n-k-1       SSE/dofE
+Total       Y'*Y - sum(Y)^2/n       n-1         
+
+Remember: SSR + SSE = SST
+
+F-Test: is there a linear relation between some of the variables and the response?
+H0: Beta[1] = Beta[2] = ... = 0, H1: at least one Beta[k] =/= 0
+Fobs = MSR/MSE = (SSr/k) / (SSe/(n-k-1))
+Fcritical = F(alpha, k, n-k-1) = F(alpha, dofR, dofE)
+Reject H0 if Fobs > Fcritical
+ 
+R.square = SSr/SSt = 1 - SSe/SSt
+adj.R.square = 1 - (SSe/(n-p)) / (SSt/(n-1)) = 1 - (n-1)/(n-p) *(1-R.square), p <- terms in model
+
+
+t-Test on individual components: which design variables relate to the response?
+H0: Beta[j] = 0, H1: Beta[j] =/= 0
+Reject H0 if abs(t_j) > tcritical ==> t(alpha/2, n-k-1)
+t.j = Beta[j+1]/sqrt(var(Beta[j+1])) = Beta[j]/sqrt(MSE*C[j+1,j+1])
+
+
+C[j,j] is variance-covariance matrix, Sigma
+
+Sigma = MSE*(X'X)^-1
+Sigma = [ var((X'X)^-1[0,0]),  cov((X'X)^-1[0,1]),  ...,  cov((X'X)^-1[0,k])
+          cov((X'X)^-1[0,1]),  var((X'X)^-1[1,1]),  ...,  cov((X'X)^-1[1,k])
+          cov((X'X)^-1[k,0])                     ,  ..., var((X'X)^-1[k,k]) ]
+
+Also, sqrt(MSE*C[j,j]) is the standard error of the regression coefficient Beta[j]
